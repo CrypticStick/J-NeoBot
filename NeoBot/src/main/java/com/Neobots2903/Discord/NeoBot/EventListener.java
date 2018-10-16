@@ -15,15 +15,22 @@ import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent;
+import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import net.dv8tion.jda.core.requests.RestAction;
 
 public class EventListener extends ListenerAdapter {
-
+	
 	public void logMessage(Message message, boolean edited)
     {
         if (message.getChannel().getName().equals("message-log") || message.getChannel().getName().equals("join-log")) return; //Don't let it log a message from the log channel
+        
+        if (message.getGuild().getTextChannelsByName("message-log",false).isEmpty()) {
+			try {
+				message.getGuild().getController().createTextChannel("message-log");
+			} catch (InsufficientPermissionException ex) { Commands.sendMessage(message, "Warning: Give NeoBot `MANAGE_CHANNEL` permission!", false);}
+		}
         //char empty = '\u2063';
         try {
         	TextChannel logChannel = NeoBot.jda.getGuildById(NeoBot.guildID).getTextChannelsByName("message-log",true).get(0);
@@ -90,7 +97,7 @@ public class EventListener extends ListenerAdapter {
 			e.getMessage().delete();
 			} catch (Exception ex) {}
 		} else {
-		logMessage(e.getMessage(), false);
+			logMessage(e.getMessage(), false);
 		}
 	}
 	
@@ -104,7 +111,7 @@ public class EventListener extends ListenerAdapter {
 			e.getMessage().delete();
 			} catch (Exception ex) {}
 		} else {
-		logMessage(e.getMessage(), true);
+			logMessage(e.getMessage(), true);
 		}
 	}
 	

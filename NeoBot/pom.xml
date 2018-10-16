@@ -35,7 +35,12 @@
     <type>jar</type>
     <scope>compile</scope>
   </dependency>
-</dependencies>
+  <dependency>
+  	<groupId>net.sf.sociaal</groupId>
+  	<artifactId>freetts</artifactId>
+  	<version>1.2.2</version>
+  </dependency>
+  </dependencies>
 
 <build>
   <plugins>

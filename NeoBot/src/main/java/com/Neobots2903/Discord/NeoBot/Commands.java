@@ -5,10 +5,19 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Random;
 
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+
 import com.Neobots2903.Discord.NeoBot.interfaces.Command;
+import com.sun.speech.freetts.Voice;
+import com.sun.speech.freetts.VoiceManager;
 
 import net.dv8tion.jda.client.exceptions.VerificationLevelException;
 import net.dv8tion.jda.core.entities.ChannelType;
+import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
 
@@ -16,24 +25,32 @@ public class Commands {
 
 	public static ArrayList<String> reactionMessages = new ArrayList<String>();
 
-	public static void sendMessage(MessageReceivedEvent ev, String msg, boolean isPrivate) {
+	public static void sendMessage(User user, TextChannel mChannel, String msg, boolean isPrivate) {
 		try {
 			if (isPrivate) {
-				ev.getAuthor().openPrivateChannel().queue((channel) -> channel
+				user.openPrivateChannel().queue((channel) -> channel
 						.sendMessage(msg).queue());
 			} else {
-				ev.getChannel().sendMessage(msg).queue();
+				mChannel.sendMessage(msg).queue();
 			}
 		} catch (InsufficientPermissionException | VerificationLevelException e) {
-			ev.getAuthor().openPrivateChannel().queue((channel) -> channel
+			user.openPrivateChannel().queue((channel) -> channel
 					.sendMessage(String.format(
 							"%s currently does not have permission to speak in %s, %s.\n"
 									+ "If you feel this is a mistake, please contact the server administrator.",
-									NeoBot.jda.getSelfUser().getName(), ev.getGuild().getName(), ev.getChannel().getName()))
+									NeoBot.jda.getSelfUser().getName(), mChannel.getGuild().getName(), mChannel.getName()))
 					.queue());
 		} catch (IllegalArgumentException e) {
-			sendMessage(ev, String.format("%s, I can't send an empty message!", ev.getAuthor().getAsMention()),false);
+			sendMessage(user, mChannel, String.format("%s, I can't send an empty message!", user.getAsMention()),false);
 		}
+	}
+	
+	public static void sendMessage(MessageReceivedEvent e, String msg, boolean isPrivate) {
+		sendMessage(e.getAuthor(),e.getTextChannel(),msg,isPrivate);
+	}
+	
+	public static void sendMessage(Message m, String msg, boolean isPrivate) {
+		sendMessage(m.getAuthor(),m.getTextChannel(),msg,isPrivate);
 	}
 
 	@Command(Name = "help",
@@ -94,8 +111,38 @@ public class Commands {
 
 		if (!e.getAuthor().getId().equals("215507031375740928")) return;
 
+		int EXCEPTION = 1/0;
 		sendMessage(e,"Test code complete!",false);
 		e.getMessage().delete().queue();
+	}
+	
+	@Command(Name = "panic",
+			Summary = "An urgent message that will audibly relay to the NeoBots. Only use when necessary!")
+	public static void WARNINGWARNINGaaHHHHHHH(MessageReceivedEvent e, ArrayList<String> args) {
+		try {
+			
+	        Clip clip = AudioSystem.getClip();
+	        AudioInputStream inputStream = AudioSystem.getAudioInputStream(
+	        	NeoBot.class.getClassLoader().getResourceAsStream("Warning.wav"));
+	        clip.open(inputStream);
+	        clip.start();
+	        
+	        while(clip.getMicrosecondLength() != clip.getMicrosecondPosition())
+	        {
+	        }
+			
+			  Voice voice;
+			  System.setProperty("freetts.voices", 
+		                "com.sun.speech.freetts.en.us.cmu_us_kal.KevinVoiceDirectory");  
+			  VoiceManager voiceManager = VoiceManager.getInstance();
+			  voice = voiceManager.getVoices()[1];
+			  voice.allocate();
+			  voice.speak(String.join(" ", args));
+			  voice.deallocate();
+			  
+	      } catch (Exception ex) {
+	        System.err.println(ex.getMessage());
+	      }
 	}
 
 	@Command(Name = "random", 
