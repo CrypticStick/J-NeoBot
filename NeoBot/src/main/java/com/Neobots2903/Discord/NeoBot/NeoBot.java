@@ -2,13 +2,20 @@ package com.Neobots2903.Discord.NeoBot;
 
 import java.io.BufferedReader;
 import java.io.Console;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 
 import javax.security.auth.login.LoginException;
 import javax.swing.JFrame;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 
 import com.Neobots2903.Discord.NeoBot.GUI;
+import com.Neobots2903.Discord.NeoBot.objects.DiscordUser;
 import com.Neobots2903.Discord.NeoBot.objects.TextAreaConsole;
 
 import java.io.InputStream;
@@ -40,6 +47,28 @@ public class NeoBot {
 		String oldText = GUI.console.getText();
 		GUI.console.setText(oldText + System.lineSeparator() + message);
 	}
+	
+	public static void SaveDiscordUser(DiscordUser user) throws Exception{  
+	    JAXBContext contextObj = JAXBContext.newInstance(DiscordUser.class);  
+	  
+	    Marshaller marshallerObj = contextObj.createMarshaller();  
+	    marshallerObj.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);  
+	      
+	    marshallerObj.marshal(user, new FileOutputStream("users.xml"));  
+	       
+	}  
+	
+	public static void GetDiscordUser(int id) {  
+	     try {    
+	            File file = new File("users.xml");    
+	            JAXBContext jaxbContext = JAXBContext.newInstance(DiscordUser.class);    
+	         
+	            Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();    
+	            DiscordUser e =(DiscordUser) jaxbUnmarshaller.unmarshal(file);    
+	              
+	          } catch (JAXBException e) {e.printStackTrace(); }    
+	         
+	}  
 
 	public static void main(String[] args) throws LoginException, RateLimitedException, InterruptedException {
 		
