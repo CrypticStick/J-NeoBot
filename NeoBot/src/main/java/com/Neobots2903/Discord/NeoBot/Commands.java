@@ -1,15 +1,26 @@
 package com.Neobots2903.Discord.NeoBot;
 
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileReader;
+import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Random;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 
 import com.Neobots2903.Discord.NeoBot.interfaces.Command;
+import com.Neobots2903.Discord.NeoBot.objects.Database;
+import com.Neobots2903.Discord.NeoBot.objects.DiscordUser;
+import com.Neobots2903.Discord.NeoBot.objects.DiscordUserList;
 import com.sun.speech.freetts.Voice;
 import com.sun.speech.freetts.VoiceManager;
 
@@ -110,8 +121,7 @@ public class Commands {
 	public static void thisIsATEST123(MessageReceivedEvent e, ArrayList<String> args) {
 
 		if (!e.getAuthor().getId().equals("215507031375740928")) return;
-
-		int EXCEPTION = 1/0;
+        
 		sendMessage(e,"Test code complete!",false);
 		e.getMessage().delete().queue();
 	}
@@ -119,18 +129,30 @@ public class Commands {
 	@Command(Name = "panic",
 			Summary = "An urgent message that will audibly relay to the NeoBots. Only use when necessary!")
 	public static void WARNINGWARNINGaaHHHHHHH(MessageReceivedEvent e, ArrayList<String> args) {
+
+		//read audio data from whatever source (file/classloader/etc.)
+		InputStream audioSrc = NeoBot.class.getClassLoader().getResourceAsStream("Warning.wav");
+		InputStream bufferedAlarm = new BufferedInputStream(audioSrc);
+		
+		Clip alarm = null;
 		try {
-			
-	        Clip clip = AudioSystem.getClip();
-	        AudioInputStream inputStream = AudioSystem.getAudioInputStream(
-	        	NeoBot.class.getClassLoader().getResourceAsStream("Warning.wav"));
-	        clip.open(inputStream);
-	        clip.start();
+			alarm = AudioSystem.getClip();
+			AudioInputStream inputStream = AudioSystem.getAudioInputStream(bufferedAlarm);
+		        alarm.open(inputStream);
+		} catch (Exception ex) {
+			System.out.println("Warning! Alarm failed to load.");
+		}
+		
+	        alarm.start();
 	        
-	        while(clip.getMicrosecondLength() != clip.getMicrosecondPosition())
+	        while(alarm.getMicrosecondLength() != alarm.getMicrosecondPosition())
 	        {
 	        }
 			
+	        alarm.stop();
+	        alarm.close();
+	        
+	        try {    
 			  Voice voice;
 			  System.setProperty("freetts.voices", 
 		                "com.sun.speech.freetts.en.us.cmu_us_kal.KevinVoiceDirectory");  

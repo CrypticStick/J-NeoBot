@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.security.auth.login.LoginException;
 import javax.swing.JFrame;
@@ -13,9 +15,12 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.transform.Result;
 
 import com.Neobots2903.Discord.NeoBot.GUI;
+import com.Neobots2903.Discord.NeoBot.objects.Database;
 import com.Neobots2903.Discord.NeoBot.objects.DiscordUser;
+import com.Neobots2903.Discord.NeoBot.objects.DiscordUserList;
 import com.Neobots2903.Discord.NeoBot.objects.TextAreaConsole;
 
 import java.io.InputStream;
@@ -34,6 +39,7 @@ public class NeoBot {
 	public static JDA jda;
 
 	static InputStream tokenIS = NeoBot.class.getClassLoader().getResourceAsStream("token"); 
+	
 	static boolean interactive = true;
 	static String guildID = "323584029930553347";
 	static String token;
@@ -42,37 +48,73 @@ public class NeoBot {
 	static String botMessage;
 	static boolean running = true;
 	static int timeoutSeconds = 10;
+	static Database database = getDatabase();
 	
 	public static void consoleLog(String message) {
-		String oldText = GUI.console.getText();
-		GUI.console.setText(oldText + System.lineSeparator() + message);
+		StringBuilder log = new StringBuilder();
+		log.append(GUI.console.getText());
+		log.append(System.lineSeparator() + message);
+		GUI.console.setText(log.toString());
 	}
 	
-	public static void SaveDiscordUser(DiscordUser user) throws Exception{  
-	    JAXBContext contextObj = JAXBContext.newInstance(DiscordUser.class);  
-	  
-	    Marshaller marshallerObj = contextObj.createMarshaller();  
-	    marshallerObj.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);  
-	      
-	    marshallerObj.marshal(user, new FileOutputStream("users.xml"));  
-	       
+	public static void setDatabase(Database database) {
+        try {
+        	NeoBot.database = database;
+        	JAXBContext jaxbContext = JAXBContext.newInstance(Database.class);
+        	Marshaller marshaller = jaxbContext.createMarshaller();
+        	marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+        	marshaller.marshal(database, new File("database.xml"));
+        	//marshaller.marshal(database, System.out);
+        } catch (JAXBException ex) {
+        	ex.printStackTrace();
+        }
+	}
+	
+	public static Database getDatabase() {
+		try {    
+            File file = new File("database.xml");    
+            JAXBContext jaxbContext = JAXBContext.newInstance(DiscordUser.class);    
+            Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();    
+            
+            Database database =(Database)jaxbUnmarshaller.unmarshal(file);   
+            return database;
+            
+          } catch (JAXBException ex) {
+        	  ex.printStackTrace();
+        	  return new Database(
+        			  NeoBot.guildID, 
+        			  "Okay, now this is epic.", 
+        			  new DiscordUserList(new ArrayList<DiscordUser>())
+        			  );
+          }    
+	}
+
+	public static void SaveDiscordUser(DiscordUser user) {  
+		try {
+		database.getUserList().setUser(user);
+		setDatabase(database);
+		} catch (Exception ex) { }
 	}  
 	
-	public static void GetDiscordUser(int id) {  
-	     try {    
-	            File file = new File("users.xml");    
-	            JAXBContext jaxbContext = JAXBContext.newInstance(DiscordUser.class);    
-	         
-	            Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();    
-	            DiscordUser e =(DiscordUser) jaxbUnmarshaller.unmarshal(file);    
-	              
-	          } catch (JAXBException e) {e.printStackTrace(); }    
-	         
+	public static DiscordUser GetDiscordUser(String Id) {  
+		try {
+	     return database.getUserList().getUser(Id);
+		} catch (Exception ex) { }
+		return null;
 	}  
 
 	public static void main(String[] args) throws LoginException, RateLimitedException, InterruptedException {
+
+		GUI window = null;
+		boolean guiAvailable = true;
+		try {
+    	window = new GUI();
+		} catch (Exception ex) {
+			System.out.println("No display available - code will run in console mode.");
+			guiAvailable = false;
+		}
 		
-    	GUI window = new GUI();
+		if(guiAvailable) {
     	window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     	window.setSize(500, 300);
     	window.setVisible(true);
@@ -80,6 +122,7 @@ public class NeoBot {
 		PrintStream printStream = new PrintStream(new TextAreaConsole(GUI.console));
 		System.setOut(printStream);
 		System.setErr(printStream);
+		}
 		
 		prefix = ">";
 		botMessage = "NEOBOT IS HERE!!";

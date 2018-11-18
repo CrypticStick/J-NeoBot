@@ -3,10 +3,12 @@ package com.Neobots2903.Discord.NeoBot;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import com.Neobots2903.Discord.NeoBot.interfaces.Command;
+import com.Neobots2903.Discord.NeoBot.objects.DiscordUser;
 
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
@@ -21,6 +23,13 @@ public class CommandHandler extends ListenerAdapter {
 		if(!e.getMessage().getContentRaw().startsWith(NeoBot.prefix) && 
 				!e.getMessage().getContentRaw().startsWith(NeoBot.mention)) return;	//quits if message doesn't start with command prefix
 
+		String id = e.getAuthor().getId();	//gets user id
+		String name = e.getAuthor().getName();	//gets user name
+		
+		if (NeoBot.GetDiscordUser(id) == null)
+			NeoBot.SaveDiscordUser(new DiscordUser(id, name));	//adds user to database if not already there
+		
+		NeoBot.SaveDiscordUser(NeoBot.GetDiscordUser(id).setUseTime(LocalTime.now().toSecondOfDay()));	//save the time the command is used
 
 		ArrayList<String> args;
 		if (e.getMessage().getContentRaw().startsWith(NeoBot.prefix))	//message is chopped up into an ArrayList containing the command and arguments
@@ -43,7 +52,7 @@ public class CommandHandler extends ListenerAdapter {
 						try {
 							m.invoke(Commands.class,e,args);
 						} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
-							e1.printStackTrace();	//otherwise, woops oh well :P
+							//e1.printStackTrace();	//otherwise, woops oh well :P
 						}
 					}}; 
 					commandThread.start(); 

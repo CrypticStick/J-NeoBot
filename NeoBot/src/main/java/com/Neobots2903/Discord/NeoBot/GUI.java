@@ -2,6 +2,7 @@ package com.Neobots2903.Discord.NeoBot;
 
 
 import java.awt.BorderLayout;
+import java.awt.HeadlessException;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
@@ -17,7 +18,7 @@ public class GUI extends JFrame {
 	private JLabel comingSoon;	// Declare a Label component 
 	public static JTextArea console;	//Console window
 
-	public GUI () {
+	public GUI () throws HeadlessException {
 		super("NeoBot");
 		setLayout(new BorderLayout());
 		

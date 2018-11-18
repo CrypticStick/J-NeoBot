@@ -1,41 +1,60 @@
 package com.Neobots2903.Discord.NeoBot.objects;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import java.time.LocalTime;
 
-@XmlRootElement
+import javax.xml.bind.annotation.XmlAttribute;
+
 public class DiscordUser {
-    private int id;  
-    private String name;  
-    private float salary;  
-  
-public DiscordUser() {}  
-public DiscordUser(int id, String name, float salary) {  
-    super();  
-    this.id = id;  
-    this.name = name;  
-    this.salary = salary;  
-}  
-@XmlAttribute  
-public int getId() {  
-    return id;  
-}  
-public void setId(int id) {  
-    this.id = id;  
-}  
-@XmlElement  
-public String getName() {  
-    return name;  
-}  
-public void setName(String name) {  
-    this.name = name;  
-}  
-@XmlElement  
-public float getSalary() {  
-    return salary;  
-}  
-public void setSalary(float salary) {  
-    this.salary = salary;  
-}  
+
+    private String id;
+    private String name;
+    private int useTime;
+    private boolean blocked = false;
+
+    public DiscordUser() {
+    }
+
+    public DiscordUser(String id, String name) {
+        this.id = id;
+        this.name = name;
+        useTime = LocalTime.now().toSecondOfDay();
+    }
+
+    @XmlAttribute
+    public String getId() {
+        return id;
+    }
+
+    public DiscordUser setId(String id) {
+        this.id = id;
+        return this;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public DiscordUser setName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public boolean getBlocked() {
+        return blocked;
+    }
+
+    public DiscordUser setBlocked(boolean blocked) {
+        this.blocked = blocked;
+        return this;
+    }
+
+    public int getUseTime() {
+        return useTime;
+    }
+
+    public DiscordUser setUseTime(int useTime) {
+        this.useTime = useTime;
+        return this;
+    }
+    
 }
