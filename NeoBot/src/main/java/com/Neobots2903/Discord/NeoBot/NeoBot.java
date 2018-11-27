@@ -124,7 +124,7 @@ public class NeoBot {
 		System.setErr(printStream);
 		}
 		
-		prefix = ">";
+		prefix = ".";
 		botMessage = "NEOBOT IS HERE!!";
 		
 		try {
