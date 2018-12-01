@@ -27,9 +27,11 @@ public class EventListener extends ListenerAdapter {
 
 		if (message.getGuild().getTextChannelsByName("message-log", false).isEmpty()) {
 			try {
-				message.getGuild().getController().createTextChannel("message-log");
+				NeoBot.jda.getGuildById(NeoBot.guildID)
+					.getController().createTextChannel("message-log");
 			} catch (InsufficientPermissionException ex) {
 				Commands.sendMessage(message, "Warning: Give NeoBot `MANAGE_CHANNEL` permission!", false);
+				return;
 			}
 		}
 		// char empty = '\u2063';

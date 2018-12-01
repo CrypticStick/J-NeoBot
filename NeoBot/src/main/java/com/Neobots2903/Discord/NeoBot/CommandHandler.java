@@ -33,9 +33,8 @@ public class CommandHandler extends ListenerAdapter {
 				&& !e.getMessage().getContentRaw().startsWith(NeoBot.mention))
 			return; // quits if message doesn't start with command prefix
 
-		NeoBot.SaveDiscordUser(NeoBot.GetDiscordUser(id).setUseTime(LocalTime.now().toSecondOfDay())); // save the time
-																										// the command
-																										// is used
+		NeoBot.SaveDiscordUser(NeoBot.GetDiscordUser(id).setUseTime(LocalTime.now().toSecondOfDay())); 
+		// save the time the command is used
 
 		ArrayList<String> args;
 		if (e.getMessage().getContentRaw().startsWith(NeoBot.prefix)) // message is chopped up into an ArrayList
@@ -49,18 +48,15 @@ public class CommandHandler extends ListenerAdapter {
 			args = new ArrayList<String>(
 					Arrays.asList(e.getMessage().getContentRaw().substring(NeoBot.mention.length()).trim().split(" ")));
 
-		String cmd = args.remove(0).toLowerCase(); // command is removed from the arguments and put into its own
-													// variable
+		String cmd = args.remove(0).toLowerCase(); // command is removed from the arguments and put into its own variable
 
 		Method[] commands = Commands.class.getMethods(); // gets all of the methods in the Commands class
 		for (Method m : commands) { // for each method in Commands
 			if (m.isAnnotationPresent(Command.class)) { // if method is a command...
 				String annotationName = m.getAnnotation(Command.class).Name(); // gets the command name of the method
 				ArrayList<String> Aliases = new ArrayList<String>(
-						Arrays.asList(m.getAnnotation(Command.class).Aliases())); // gets the other aliases of the
-																					// method
-				if (annotationName.equals(cmd) || Aliases.contains(cmd)) { // if the method has the command we are
-																			// looking for...
+						Arrays.asList(m.getAnnotation(Command.class).Aliases())); // gets the other aliases of the method
+				if (annotationName.equals(cmd) || Aliases.contains(cmd)) { // if the method has the command we are looking for...
 
 					Thread commandThread = new Thread() {
 						public void run() {
