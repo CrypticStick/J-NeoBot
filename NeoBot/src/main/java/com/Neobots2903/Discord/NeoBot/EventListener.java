@@ -5,6 +5,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 import net.dv8tion.jda.core.EmbedBuilder;
+import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.Message.Attachment;
 import net.dv8tion.jda.core.entities.PrivateChannel;
@@ -17,6 +18,7 @@ import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
+import net.dv8tion.jda.core.managers.GuildController;
 import net.dv8tion.jda.core.requests.RestAction;
 
 public class EventListener extends ListenerAdapter {
@@ -27,10 +29,12 @@ public class EventListener extends ListenerAdapter {
 
 		if (message.getGuild().getTextChannelsByName("message-log", false).isEmpty()) {
 			try {
-				NeoBot.jda.getGuildById(NeoBot.guildID)
-					.getController().createTextChannel("message-log");
+				Guild server = NeoBot.jda.getGuildById(NeoBot.guildID);
+				GuildController control = server.getController();
+				control.createTextChannel("message-log").queue();
+
 			} catch (InsufficientPermissionException ex) {
-				Commands.sendMessage(message, "Warning: Give NeoBot `MANAGE_CHANNEL` permission!", false);
+				Commands.sendMessage(message, "Warning: Give NeoBot `" + ex.getPermission().getName() + "` permission(s)!", false);
 				return;
 			}
 		}
@@ -70,6 +74,8 @@ public class EventListener extends ListenerAdapter {
 
 			logChannel.sendMessage(eb.build()).queue();
 
+		}catch (InsufficientPermissionException ex) {
+			Commands.sendMessage(message, "Warning: Give NeoBot `" + ex.getPermission().getName() + "` permission(s)!", false);
 		} catch (Exception ex) {
 			System.out.println("Error: " + ex.getMessage());
 		}

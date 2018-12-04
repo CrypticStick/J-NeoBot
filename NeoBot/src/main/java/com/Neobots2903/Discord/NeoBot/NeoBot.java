@@ -41,7 +41,7 @@ public class NeoBot {
 	static InputStream tokenIS = NeoBot.class.getClassLoader().getResourceAsStream("token"); 
 	
 	static boolean interactive = true;
-	static String guildID = "323584029930553347";
+	static String guildID = "459140955073937409";
 	static String token;
 	static String prefix;
 	static String mention;

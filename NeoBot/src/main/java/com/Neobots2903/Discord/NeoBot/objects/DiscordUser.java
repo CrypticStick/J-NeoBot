@@ -1,7 +1,6 @@
 package com.Neobots2903.Discord.NeoBot.objects;
 
 import java.time.LocalTime;
-
 import javax.xml.bind.annotation.XmlAttribute;
 
 public class DiscordUser {
@@ -10,6 +9,7 @@ public class DiscordUser {
     private String name;
     private int useTime;
     private boolean blocked = false;
+    private PendingMessageList pendingMessages;
 
     public DiscordUser() {
     }
@@ -54,6 +54,15 @@ public class DiscordUser {
 
     public DiscordUser setUseTime(int useTime) {
         this.useTime = useTime;
+        return this;
+    }
+    
+    public PendingMessageList getPendingMessages() {
+        return pendingMessages;
+    }
+
+    public DiscordUser setPendingMessages(PendingMessageList pendingMessages) {
+        this.pendingMessages = pendingMessages;
         return this;
     }
     

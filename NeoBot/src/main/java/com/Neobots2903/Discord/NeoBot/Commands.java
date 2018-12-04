@@ -21,6 +21,7 @@ import com.Neobots2903.Discord.NeoBot.interfaces.Command;
 import com.Neobots2903.Discord.NeoBot.objects.Database;
 import com.Neobots2903.Discord.NeoBot.objects.DiscordUser;
 import com.Neobots2903.Discord.NeoBot.objects.DiscordUserList;
+import com.Neobots2903.Discord.NeoBot.objects.PendingMessage;
 import com.sun.speech.freetts.Voice;
 import com.sun.speech.freetts.VoiceManager;
 
@@ -117,7 +118,7 @@ public class Commands {
 
 	@Command(Name = "test", 
 			Summary = "My personal testing command while implementing features. TESTING TESTING 123",
-			SpecialPerms = "Only I can run this :P")
+			SpecialPerms = "Only Stickles can run this :P")
 	public static void thisIsATEST123(MessageReceivedEvent e, ArrayList<String> args) {
 
 		if (!e.getAuthor().getId().equals("215507031375740928")) return;
@@ -175,5 +176,24 @@ public class Commands {
 		Integer randomInt = rnd.nextInt(100);
 		sendMessage(e,randomInt.toString(),false);
 	}
+	
+	@Command(Name = "everyone", 
+			Summary = "Sends message that pings everyone (Requires admin approval)")
+	public static void XDwowGOVERNMENTcensorSHIPWHAHAHA(MessageReceivedEvent e, ArrayList<String> args) {
 
+		NeoBot.GetDiscordUser(e.getAuthor().getId()).getPendingMessages().getMessageList().add(
+				new PendingMessage(String.join(" ", args)));
+	}
+	
+	@Command(Name = "pending", 
+			Summary = "Checks pending user requests",
+			SpecialPerms = "Moderators only")
+	public static void whoAthisisEPIC(MessageReceivedEvent e, ArrayList<String> args) {
+		if (args.contains("list")) {
+			for (DiscordUser user : NeoBot.database.getUserList().getUserList()) {
+				
+			}
+			sendMessage(e,"", false);
+		}
+	}
 }
