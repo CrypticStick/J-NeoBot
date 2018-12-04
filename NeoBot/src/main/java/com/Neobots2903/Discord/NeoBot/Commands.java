@@ -191,7 +191,9 @@ public class Commands {
 	public static void whoAthisisEPIC(MessageReceivedEvent e, ArrayList<String> args) {
 		if (args.contains("list")) {
 			for (DiscordUser user : NeoBot.database.getUserList().getUserList()) {
-				
+				for (PendingMessage message : user.getPendingMessages().getMessageList()) {
+					//soon
+				}
 			}
 			sendMessage(e,"", false);
 		}
