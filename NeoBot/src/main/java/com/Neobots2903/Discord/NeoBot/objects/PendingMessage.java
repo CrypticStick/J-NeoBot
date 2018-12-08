@@ -11,17 +11,19 @@ import com.Neobots2903.Discord.NeoBot.NeoBot;
 
 public class PendingMessage {
 
-    private String message;
-    @XmlTransient private DiscordUser author;
     private int id;
+    private String message;
+    private String channelId;
+    private String authorId;
     private String useTime;
 
     public PendingMessage() {
     }
 
-    public PendingMessage(String message, DiscordUser author) {
+    public PendingMessage(String message, String channelId, DiscordUser author) {
         this.message = message;
-        this.author = author;
+        this.channelId = channelId;
+        this.authorId = author.getId();
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
     	Date date = new Date();
     	useTime = dateFormat.format(date);
@@ -43,13 +45,21 @@ public class PendingMessage {
         return this;
     }
     
-    @XmlTransient
-    public DiscordUser getAuthor() {
-        return author;
+    public String getChannelId() {
+        return channelId;
     }
 
-    public PendingMessage setAuthor(DiscordUser author) {
-        this.author = author;
+    public PendingMessage setChannelId(String channelId) {
+        this.channelId = channelId;
+        return this;
+    }
+    
+    public String getAuthorId() {
+        return authorId;
+    }
+
+    public PendingMessage setAuthorId(String authorId) {
+        this.authorId = authorId;
         return this;
     }
     

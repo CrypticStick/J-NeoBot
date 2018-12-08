@@ -183,7 +183,7 @@ public class Commands {
 
 		DiscordUser user = NeoBot.GetDiscordUser(e.getAuthor().getId());
 		user.getPendingMessages().getMessageList().add(
-				new PendingMessage(String.join(" ", args),user));
+				new PendingMessage(String.join(" ", args),e.getChannel().getId(),user));
 		NeoBot.SaveDiscordUser(user);
 		sendMessage(e,e.getAuthor().getAsMention() + " Your ping request is pending. Please wait for a moderator to approve.", false);
 	}
@@ -223,7 +223,7 @@ public class Commands {
 				for (PendingMessage message : user.getPendingMessages().getMessageList()) {
 					
 					++index;
-					if ((argNumber-1)*10 > index || index > argNumber*10) return;
+					if ((argNumber-1)*10 > index || index > argNumber*10) continue;
 					
 					String preview = message.getMessage().replaceAll("\n", "---");
 					boolean expandable = false;
@@ -232,7 +232,9 @@ public class Commands {
 						expandable = true;
 					}
 					
-					finalMessage += message.getId() + ". [" + message.getAuthor().getName() + "] " + 
+					finalMessage += message.getId() + 
+							". [" + NeoBot.jda.getUserById(NeoBot.jda.getTextChannelById(message.getChannelId()).getName()) + "] " + 
+							". <" + NeoBot.jda.getUserById(message.getAuthorId()).getName() + "> " + 
 							preview + ((expandable) ? "[...]" : "") + "\n";		
 				}
 			}
@@ -246,6 +248,15 @@ public class Commands {
 			finalMessage += "Page " + argNumber + "/" + ((int)Math.ceil(index/10)) + "```";
 			
 			sendMessage(e, finalMessage, false);
+		} else if (args.contains("approve")) {
+			for (DiscordUser user : NeoBot.database.getUserList().getUserList()) {
+				for (PendingMessage message : user.getPendingMessages().getMessageList()) {
+					if (!isArgNumber) sendMessage(e,"Please enter message # you wish to approve.",false);
+					if (message.getId() == argNumber) {
+						
+					}
+				}
+			}
 		}
 	}
 }
