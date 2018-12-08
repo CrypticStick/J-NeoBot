@@ -62,8 +62,17 @@ public class CommandHandler extends ListenerAdapter {
 						public void run() {
 							try {
 								m.invoke(Commands.class, e, args);
-							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
-								// e1.printStackTrace(); //otherwise, woops oh well :P
+							} catch (InvocationTargetException e1) {
+								Throwable fe = e1.getCause();
+								if (fe == null) fe = e1;
+								Commands.sendMessage(e, 
+										"`Error: Command crashed! This isn't supposed to happen :/" + 
+										((e.getAuthor().getId().equals("215507031375740928")) ? 
+										(System.lineSeparator() + "Since you're the Bot Tech, here's the error:" + System.lineSeparator() + fe.toString()) : "") + 
+										"`", 
+										false);
+							} catch (Exception e2) {
+								Commands.sendMessage(e, "`Critical: CommandHandler Failed!", false);
 							}
 						}
 					};

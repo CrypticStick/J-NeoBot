@@ -1,6 +1,7 @@
 package com.Neobots2903.Discord.NeoBot.objects;
 
 import java.time.LocalTime;
+
 import javax.xml.bind.annotation.XmlAttribute;
 
 public class DiscordUser {
@@ -12,12 +13,14 @@ public class DiscordUser {
     private PendingMessageList pendingMessages;
 
     public DiscordUser() {
+    	pendingMessages = new PendingMessageList();
     }
 
     public DiscordUser(String id, String name) {
         this.id = id;
         this.name = name;
         useTime = LocalTime.now().toSecondOfDay();
+    	pendingMessages = new PendingMessageList();
     }
 
     @XmlAttribute
@@ -64,6 +67,10 @@ public class DiscordUser {
     public DiscordUser setPendingMessages(PendingMessageList pendingMessages) {
         this.pendingMessages = pendingMessages;
         return this;
+    }
+    
+    public String getMention() {
+    	return "<@" + getId() + ">";
     }
     
 }

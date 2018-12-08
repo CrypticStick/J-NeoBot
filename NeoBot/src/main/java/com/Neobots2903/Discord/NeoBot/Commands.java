@@ -181,21 +181,71 @@ public class Commands {
 			Summary = "Sends message that pings everyone (Requires admin approval)")
 	public static void XDwowGOVERNMENTcensorSHIPWHAHAHA(MessageReceivedEvent e, ArrayList<String> args) {
 
-		NeoBot.GetDiscordUser(e.getAuthor().getId()).getPendingMessages().getMessageList().add(
-				new PendingMessage(String.join(" ", args)));
+		DiscordUser user = NeoBot.GetDiscordUser(e.getAuthor().getId());
+		user.getPendingMessages().getMessageList().add(
+				new PendingMessage(String.join(" ", args),user));
+		NeoBot.SaveDiscordUser(user);
+		sendMessage(e,e.getAuthor().getAsMention() + " Your ping request is pending. Please wait for a moderator to approve.", false);
 	}
 	
 	@Command(Name = "pending", 
 			Summary = "Checks pending user requests",
 			SpecialPerms = "Moderators only")
 	public static void whoAthisisEPIC(MessageReceivedEvent e, ArrayList<String> args) {
+		
+		int index = 0;
+		boolean isArgNumber = false;
+		int argNumber = 1;
+		
+		for(String arg : args) {
+			try 
+			{ 
+				argNumber = Integer.parseInt(arg);
+				isArgNumber = true;
+				break;
+			} 
+			catch (Exception ex) 
+			{
+				continue;
+			}
+		}
+		
 		if (args.contains("list")) {
-			for (DiscordUser user : NeoBot.database.getUserList().getUserList()) {
-				for (PendingMessage message : user.getPendingMessages().getMessageList()) {
-					//soon
+			if(isArgNumber) {
+				if (argNumber < 1) {
+					sendMessage(e, e.getAuthor().getAsMention() + " Please provide a positive page number value.", false);
+					return;
 				}
 			}
-			sendMessage(e,"", false);
+			String finalMessage = "```Pending messages:" + "\n";
+			
+			for (DiscordUser user : NeoBot.database.getUserList().getUserList()) {
+				for (PendingMessage message : user.getPendingMessages().getMessageList()) {
+					
+					++index;
+					if ((argNumber-1)*10 > index || index > argNumber*10) return;
+					
+					String preview = message.getMessage().replaceAll("\n", "---");
+					boolean expandable = false;
+					if (preview.length() > 40) {
+						preview = preview.substring(0,40);
+						expandable = true;
+					}
+					
+					finalMessage += message.getId() + ". [" + message.getAuthor().getName() + "] " + 
+							preview + ((expandable) ? "[...]" : "") + "\n";		
+				}
+			}
+			
+			if (argNumber > (int)Math.ceil(index/10) && argNumber != 1) {
+				sendMessage(e, "There is no page " + argNumber, false);
+				return;
+			}
+			
+			if (index < 10) index = 10;
+			finalMessage += "Page " + argNumber + "/" + ((int)Math.ceil(index/10)) + "```";
+			
+			sendMessage(e, finalMessage, false);
 		}
 	}
 }

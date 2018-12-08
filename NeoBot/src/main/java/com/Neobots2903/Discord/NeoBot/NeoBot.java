@@ -48,7 +48,7 @@ public class NeoBot {
 	static String botMessage;
 	static boolean running = true;
 	static int timeoutSeconds = 10;
-	static Database database = getDatabase();
+	public static Database database = getDatabase();
 	
 	public static void consoleLog(String message) {
 		StringBuilder log = new StringBuilder();

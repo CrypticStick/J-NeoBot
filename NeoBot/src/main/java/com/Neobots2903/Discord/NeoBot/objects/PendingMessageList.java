@@ -9,6 +9,7 @@ public class PendingMessageList {
     private ArrayList<PendingMessage> messageList;
 
     public PendingMessageList() {
+    	messageList = new ArrayList<PendingMessage>();
     }
 
     public PendingMessageList(ArrayList<PendingMessage> messageList) {
