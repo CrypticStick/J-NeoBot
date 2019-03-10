@@ -30,6 +30,7 @@ import net.dv8tion.jda.core.entities.ChannelType;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.core.entities.Message.Attachment;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
 
@@ -167,6 +168,20 @@ public class Commands {
 	        System.err.println(ex.getMessage());
 	      }
 	}
+	
+	@Command(Name = "music",
+			Summary = "Post a music file and the bot will play epic music",
+			Syntax = "music [audio file]")
+	public static void WowTHISSOUNDlikeMuSIC(MessageReceivedEvent e, ArrayList<String> args) {
+
+		for (Attachment a : e.getMessage().getAttachments()) {
+			if (a.getFileName().endsWith(".mp3") || a.getFileName().endsWith(".wav")) {
+				a.download(new File("music/" + a.getFileName()));
+				NeoBot.PlaySound("music/" + a.getFileName());
+				return;
+			}
+		}
+	}
 
 	@Command(Name = "random", 
 			Summary = "Provides a random number between 0 and 100")
@@ -233,7 +248,7 @@ public class Commands {
 					}
 					
 					finalMessage += message.getId() + 
-							". [" + NeoBot.jda.getUserById(NeoBot.jda.getTextChannelById(message.getChannelId()).getName()) + "] " + 
+							". [" + NeoBot.jda.getTextChannelById(message.getChannelId()).getName() + "] " + 
 							". <" + NeoBot.jda.getUserById(message.getAuthorId()).getName() + "> " + 
 							preview + ((expandable) ? "[...]" : "") + "\n";		
 				}
@@ -249,11 +264,22 @@ public class Commands {
 			
 			sendMessage(e, finalMessage, false);
 		} else if (args.contains("approve")) {
+			if (!isArgNumber) { 
+				sendMessage(e,"Please enter message # you wish to approve.",false);
+				return;
+			}
 			for (DiscordUser user : NeoBot.database.getUserList().getUserList()) {
 				for (PendingMessage message : user.getPendingMessages().getMessageList()) {
-					if (!isArgNumber) sendMessage(e,"Please enter message # you wish to approve.",false);
 					if (message.getId() == argNumber) {
-						
+						sendMessage(e,"Message approved!",false);
+						sendMessage(
+								NeoBot.jda.getUserById(message.getAuthorId()),
+								NeoBot.jda.getTextChannelById(message.getChannelId()),
+								message.getMessage(),
+								false
+								);
+						user.getPendingMessages().getMessageList().remove(message);
+						NeoBot.SaveDiscordUser(user);
 					}
 				}
 			}

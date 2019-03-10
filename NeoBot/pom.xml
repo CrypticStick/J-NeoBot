@@ -31,7 +31,7 @@
   <dependency>
     <groupId>net.dv8tion</groupId>
     <artifactId>JDA</artifactId>
-    <version>3.8.1_443</version>
+    <version>3.8.3_461</version>
   </dependency>
   <dependency>
   	<groupId>net.sf.sociaal</groupId>

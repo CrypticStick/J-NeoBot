@@ -1,5 +1,6 @@
 package com.Neobots2903.Discord.NeoBot;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.Console;
 import java.io.File;
@@ -10,6 +11,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import javax.security.auth.login.LoginException;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.JFrame;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -24,6 +28,9 @@ import com.Neobots2903.Discord.NeoBot.objects.DiscordUserList;
 import com.Neobots2903.Discord.NeoBot.objects.TextAreaConsole;
 
 import java.io.InputStream;
+
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDA;
@@ -41,20 +48,18 @@ public class NeoBot {
 	static InputStream tokenIS = NeoBot.class.getClassLoader().getResourceAsStream("token"); 
 	
 	static boolean interactive = true;
-	static String guildID = "459140955073937409";
+	static String guildID = "459140955073937409";	//NeoBot's Server
 	static String token;
 	static String prefix;
 	static String mention;
 	static String botMessage;
 	static boolean running = true;
 	static int timeoutSeconds = 10;
+	static MediaPlayer mediaPlayer;
 	public static Database database = getDatabase();
 	
 	public static void consoleLog(String message) {
-		StringBuilder log = new StringBuilder();
-		log.append(GUI.console.getText());
-		log.append(System.lineSeparator() + message);
-		GUI.console.setText(log.toString());
+		GUI.console.append(System.lineSeparator() + message);
 	}
 	
 	public static void setDatabase(Database database) {
@@ -102,6 +107,13 @@ public class NeoBot {
 		} catch (Exception ex) { }
 		return null;
 	}  
+	
+	public static void PlaySound(String path) {
+		Media file = new Media(new File(path).toURI().toString());
+		if (mediaPlayer != null) mediaPlayer.stop();
+		mediaPlayer = new MediaPlayer(file);
+		mediaPlayer.play();
+	}
 
 	public static void main(String[] args) throws LoginException, RateLimitedException, InterruptedException {
 
