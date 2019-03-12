@@ -7,6 +7,8 @@ import java.io.FileReader;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -22,6 +24,10 @@ import com.Neobots2903.Discord.NeoBot.objects.Database;
 import com.Neobots2903.Discord.NeoBot.objects.DiscordUser;
 import com.Neobots2903.Discord.NeoBot.objects.DiscordUserList;
 import com.Neobots2903.Discord.NeoBot.objects.PendingMessage;
+import com.github.axet.vget.VGet;
+import com.github.axet.vget.info.VGetParser;
+import com.github.axet.vget.info.VideoInfo;
+import com.github.axet.vget.vhs.YouTubeMPGParser;
 import com.sun.speech.freetts.Voice;
 import com.sun.speech.freetts.VoiceManager;
 
@@ -169,17 +175,46 @@ public class Commands {
 	      }
 	}
 	
+	public static String YouTubeToMP3(String url) 
+	{
+		String filename = "arg.mp3";
+		try { 
+            VGet v = new VGet(new URL(url), new File(""));
+            //VideoInfo vi = v.getVideo();
+            //filename = vi.getTitle().replaceAll(" ","_") + ".mp3";
+    		//v.setTarget(new File("music/" + filename));
+            VGetParser user = new YouTubeMPGParser();
+            v.download(user);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+		
+		return "music/" + filename;
+	}
+	
 	@Command(Name = "music",
 			Summary = "Post a music file and the bot will play epic music",
 			Syntax = "music [audio file]")
 	public static void WowTHISSOUNDlikeMuSIC(MessageReceivedEvent e, ArrayList<String> args) {
-
+		int suffix = 0;
+		String fileName = "";
+		if (args.isEmpty())
 		for (Attachment a : e.getMessage().getAttachments()) {
 			if (a.getFileName().endsWith(".mp3") || a.getFileName().endsWith(".wav")) {
-				a.download(new File("music/" + a.getFileName()));
-				NeoBot.PlaySound("music/" + a.getFileName());
+				fileName = a.getFileName();
+				File file = new File("music/" + fileName);
+				if (file.exists() && file.length() == a.getSize())
+					NeoBot.PlaySound("music/" + fileName);
+				else if (new File("music/" + fileName).exists())
+					fileName = a.getFileName().replace(".", " (" + ++suffix + ").");
+				if (a.download(new File("music/" + fileName)))
+					NeoBot.PlaySound("music/" + fileName);
+				else
+					sendMessage(e,"`" + a.getFileName() + "` failed to download :(",false);
 				return;
 			}
+		} else {
+			NeoBot.PlaySound(YouTubeToMP3(args.get(0)));
 		}
 	}
 
