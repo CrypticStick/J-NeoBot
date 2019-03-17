@@ -1,42 +1,48 @@
 package com.Neobots2903.Discord.NeoBot;
 
 
+import java.awt.Color;
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Method;
-import java.math.BigDecimal;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 
 import com.Neobots2903.Discord.NeoBot.interfaces.Command;
-import com.Neobots2903.Discord.NeoBot.objects.Database;
 import com.Neobots2903.Discord.NeoBot.objects.DiscordUser;
-import com.Neobots2903.Discord.NeoBot.objects.DiscordUserList;
+import com.Neobots2903.Discord.NeoBot.objects.JSONObject;
 import com.Neobots2903.Discord.NeoBot.objects.PendingMessage;
 import com.github.axet.vget.VGet;
 import com.github.axet.vget.info.VGetParser;
-import com.github.axet.vget.info.VideoInfo;
 import com.github.axet.vget.vhs.YouTubeMPGParser;
 import com.sun.speech.freetts.Voice;
 import com.sun.speech.freetts.VoiceManager;
 
 import net.dv8tion.jda.client.exceptions.VerificationLevelException;
+import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.entities.ChannelType;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.entities.Message.Attachment;
+import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
 
@@ -60,12 +66,42 @@ public class Commands {
 									NeoBot.jda.getSelfUser().getName(), mChannel.getGuild().getName(), mChannel.getName()))
 					.queue());
 		} catch (IllegalArgumentException e) {
-			sendMessage(user, mChannel, String.format("%s, I can't send an empty message!", user.getAsMention()),false);
+			if (msg.isEmpty())
+				sendMessage(user, mChannel, String.format("%s, I can't send an empty message!", user.getAsMention()),false);
+			else
+				sendMessage(user, mChannel, String.format("%s, the message is too long!", user.getAsMention()),false);
+		}
+	}
+	
+	public static void sendMessage(User user, TextChannel mChannel, MessageEmbed eb, boolean isPrivate) {
+		try {
+			if (isPrivate) {
+				user.openPrivateChannel().queue((channel) -> channel
+						.sendMessage(eb).queue());
+			} else {
+				mChannel.sendMessage(eb).queue();
+			}
+		} catch (InsufficientPermissionException | VerificationLevelException e) {
+			user.openPrivateChannel().queue((channel) -> channel
+					.sendMessage(String.format(
+							"%s currently does not have permission to speak in %s, %s.\n"
+									+ "If you feel this is a mistake, please contact the server administrator.",
+									NeoBot.jda.getSelfUser().getName(), mChannel.getGuild().getName(), mChannel.getName()))
+					.queue());
+		} catch (IllegalArgumentException e) {
+			if (eb.isEmpty())
+				sendMessage(user, mChannel, String.format("%s, I can't send an empty message!", user.getAsMention()),false);
+			else
+				sendMessage(user, mChannel, String.format("%s, the message is too long!", user.getAsMention()),false);
 		}
 	}
 	
 	public static void sendMessage(MessageReceivedEvent e, String msg, boolean isPrivate) {
 		sendMessage(e.getAuthor(),e.getTextChannel(),msg,isPrivate);
+	}
+	
+	public static void sendMessage(MessageReceivedEvent e, MessageEmbed eb, boolean isPrivate) {
+		sendMessage(e.getAuthor(),e.getTextChannel(),eb,isPrivate);
 	}
 	
 	public static void sendMessage(Message m, String msg, boolean isPrivate) {
@@ -113,7 +149,7 @@ public class Commands {
 
 	@Command(Name = "echo",
 			Aliases = {"repeat","copy"},
-			Summary = "I, Yakkie, will copy what you say",
+			Summary = "I, NeoBot, will copy what you say",
 			Syntax = "echo [command]")
 	public static void wowAnECHOCommand(MessageReceivedEvent e, ArrayList<String> args) {
 
@@ -130,6 +166,15 @@ public class Commands {
 
 		if (!e.getAuthor().getId().equals("215507031375740928")) return;
         
+		JSONObject info = new JSONObject(HttpBlueAllianceGet(
+				String.format("http://www.thebluealliance.com/api/v3/team/frc%s/media/%s",args.get(0),LocalDate.now().getYear())));
+		StringBuilder list = new StringBuilder();
+		list.append(String.format("**Team %s's Media**%s", args.get(0),System.lineSeparator()));
+			list.append(String.format("Key - %s%s",
+					info.get("0","details","base64Image")[0],
+					System.lineSeparator()));
+			sendMessage(e,list.toString(),false);
+		
 		sendMessage(e,"Test code complete!",false);
 		e.getMessage().delete().queue();
 	}
@@ -217,7 +262,106 @@ public class Commands {
 			NeoBot.PlaySound(YouTubeToMP3(args.get(0)));
 		}
 	}
+	
+	static String HttpBlueAllianceGet(String url) {       
+	    try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
+	        
+            HttpGet request = new HttpGet(url);
+            request.setHeader("Content-type", "application/json");
+	        request.addHeader("X-TBA-Auth-Key", "0NiCsg5pJzCGOVmZTbYk0LdTZOXcDMIQJKThzoqIVBuEWSZ5dXbtTouAspaayL5B");
+            HttpResponse response = client.execute(request);
 
+            BufferedReader bufReader = new BufferedReader(new InputStreamReader(
+                    response.getEntity().getContent()));
+
+            StringBuilder builder = new StringBuilder();
+
+            String line;
+
+            while ((line = bufReader.readLine()) != null) {
+                builder.append(line);
+                builder.append(System.lineSeparator());
+            }
+
+            return builder.toString();
+        } catch (UnsupportedOperationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    return "";
+	}
+
+	@Command(Name = "team", 
+			Summary = "Returns the NeoBot's stats")
+	public static void javascriptMORElikeJAVAisBETTERwahhaahaha(MessageReceivedEvent e, ArrayList<String> args) {
+		int teamNumber = 2903;
+		int switchArg = -1;
+		for (int i = 0; i < args.size(); i++)
+		try {
+			teamNumber = Integer.parseInt(args.get(i));
+			switchArg = i;
+		} catch (Exception ex) {
+		}
+		
+		if (switchArg == 0)
+			switchArg = 1;
+		else 
+			switchArg = 0;
+		
+		JSONObject info;
+		StringBuilder list;
+		String value;
+		try {
+			value = args.get(switchArg);
+		} catch (Exception ex) {
+			value = "info";
+		}
+		
+		switch (value) {
+			case "awards" :
+				info = new JSONObject(HttpBlueAllianceGet(
+						String.format("http://www.thebluealliance.com/api/v3/team/frc%s/awards",teamNumber)));
+				int total = info.get().length;
+				list = new StringBuilder();
+				list.append(String.format("**Team %s's Awards**%s", teamNumber,System.lineSeparator()));
+				for (int i=0; i < total; i++)
+					list.append(String.format("%s - %s %s",info.get(String.valueOf(i),"year")[0],info.get(String.valueOf(i),"name")[0],System.lineSeparator()));
+					sendMessage(e,list.toString(),false);
+				break;
+			case "info" :
+				info = new JSONObject(HttpBlueAllianceGet(
+						String.format("http://www.thebluealliance.com/api/v3/team/frc%s",teamNumber)));
+				if (info.get("team_number")[0].isEmpty()) {
+					sendMessage(e,String.format("Sorry, Team '%s' doesn't seem to exist.",teamNumber),false);
+					return;
+				}
+				
+				EmbedBuilder eb = new EmbedBuilder();
+				eb.setColor(Color.red);
+				eb.setDescription(String.format("**Team %s's Info**", teamNumber));
+				
+				eb.addField("Nickname", info.get("nickname")[0], true);
+				eb.addField("Name", (info.get("name")[0].equals("null")) ? "N/A" : info.get("name")[0], true);
+				eb.addField("City", (info.get("city")[0].equals("null")) ? "N/A" : info.get("city")[0], true);
+				eb.addField("Country", (info.get("country")[0].equals("null")) ? "N/A" : info.get("country")[0], true);
+				eb.addField("State/Providence", (info.get("state_prov")[0].equals("null")) ? "N/A" : info.get("state_prov")[0], true);
+				eb.addField("Address", (info.get("address")[0].equals("null")) ? "N/A" : info.get("address")[0], true);
+				eb.addField("Google Maps", (info.get("gmaps_url")[0].equals("null")) ? "N/A" : info.get("gmaps_url")[0], false);
+				eb.addField("Website", (info.get("website")[0].equals("null")) ? "N/A" : info.get("website")[0], false);
+				eb.addField("Rookie Year", (info.get("rookie_year")[0].equals("null")) ? "N/A" : info.get("rookie_year")[0], false);
+				eb.addField("Motto", (info.get("motto")[0].equals("null")) ? "N/A" : info.get("motto")[0], false);
+
+				sendMessage(e,eb.build(),false);
+				break;
+			default :
+				sendMessage(e,String.format("Sorry, I have no information on '%s'",args.get(switchArg)),false);
+				break;
+		}
+	}
+	
 	@Command(Name = "random", 
 			Summary = "Provides a random number between 0 and 100")
 	public static void superRanDOmLOL(MessageReceivedEvent e, ArrayList<String> args) {
