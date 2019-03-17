@@ -2,8 +2,10 @@ package com.Neobots2903.Discord.NeoBot;
 
 
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
+import javax.imageio.ImageIO;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
@@ -37,6 +40,7 @@ import com.sun.speech.freetts.VoiceManager;
 
 import net.dv8tion.jda.client.exceptions.VerificationLevelException;
 import net.dv8tion.jda.core.EmbedBuilder;
+import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.entities.ChannelType;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
@@ -169,10 +173,23 @@ public class Commands {
 		JSONObject info = new JSONObject(HttpBlueAllianceGet(
 				String.format("http://www.thebluealliance.com/api/v3/team/frc%s/media/%s",args.get(0),LocalDate.now().getYear())));
 		StringBuilder list = new StringBuilder();
-		list.append(String.format("**Team %s's Media**%s", args.get(0),System.lineSeparator()));
-			list.append(String.format("Key - %s%s",
-					info.get("0","details","base64Image")[0],
-					System.lineSeparator()));
+		list.append(String.format("**Team %s's Avatar**%s", args.get(0),System.lineSeparator()));
+			String base64Image = info.get("0","details","base64Image")[0];
+			byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(base64Image);
+			try {
+				BufferedImage img = ImageIO.read(new ByteArrayInputStream(imageBytes));
+				File outputfile = new File("test.jpg");
+				ImageIO.write(img, "jpg", outputfile);
+				Message message = new MessageBuilder().append("My message").build();
+				//textChannel.sendFile(new File("my-file.txt"), message).queue();
+			} catch (IOException e1) {
+			}
+			
+
+
+
+
+
 			sendMessage(e,list.toString(),false);
 		
 		sendMessage(e,"Test code complete!",false);
