@@ -432,27 +432,59 @@ public class Commands {
 	
 	@Command(Name = "logchannel", 
 			Summary = "Sets whether or not channel is logged",
-			Syntax = "logchannel [add] [remove] {all}",
+			Syntax = "logchannel [add] [remove] {all} {list}",
 			SpecialPerms = true)
 	public static void ItsLOGGINTimE(MessageReceivedEvent e, ArrayList<String> args) {
 
 		DiscordChannelList cl = NeoBot.database.getLogList();
+		List<String> channelArgs = new ArrayList<String>();
+		for (String arg : args) {
+			if (arg.startsWith("<#") && arg.endsWith(">") && arg.length() == 21)
+				try {
+					NeoBot.jda.getTextChannelById(arg.substring(2,20));
+					channelArgs.add(arg);
+				} catch (Exception ex) {
+					continue;
+				}
+		}
 		
 		if(args.contains("add")) {
 			
 			if(args.contains("all")) {
-				for(Channel ch : NeoBot.jda.getGuildById(NeoBot.guildID).getChannels()) 
-					NeoBot.database.setLogList(cl.addChannel(ch.getId()));
+				for(Channel ch : NeoBot.jda.getGuildById(NeoBot.guildID).getTextChannels()) 
+					if(!ch.getName().equals("message-log"))
+						NeoBot.database.setLogList(cl.addChannel(ch.getId()));
 				sendMessage(e,"All channels are being logged!", false);
 			} else {
 			
-				if (!cl.isChannelLogged(e.getChannel().getId())) {
-					NeoBot.database.setLogList(cl.addChannel(e.getChannel().getId()));
-					sendMessage(e,String.format("Channel <#%s> will now be logged!",e.getChannel().getId()), false);
+				if (channelArgs.size() > 0) {
+					StringBuilder sb = new StringBuilder();
+					for (String channel : channelArgs) {
+						if (!cl.isChannelLogged(channel.substring(2,20))) {
+							NeoBot.database.setLogList(cl.addChannel(channel.substring(2,20)));
+							sb.append(channel + System.lineSeparator());
+						}
+					}
+					int number = sb.toString().split(System.lineSeparator()).length;
+					boolean noNew = false;
+					if (number == 1)
+						noNew = sb.toString().split(System.lineSeparator())[0].isEmpty();
+					if(number == 0 || noNew)
+						sendMessage(e,"These channels are already being logged!", false);
+					else if(number == 1)
+						sendMessage(e,String.format("Channel %s will now be logged!",sb.toString().split(System.lineSeparator())[0]), false);
+					else
+						sendMessage(e,String.format("The following channels will now be logged:%s%s",System.lineSeparator(), sb.toString()), false);
 				} else {
-					sendMessage(e,String.format("Channel <#%s> is already being logged!",e.getChannel().getId()), false);
-				}
 				
+					if (!cl.isChannelLogged(e.getChannel().getId())) {
+						NeoBot.database.setLogList(cl.addChannel(e.getChannel().getId()));
+						sendMessage(e,String.format("Channel <#%s> will now be logged!",e.getChannel().getId()), false);
+					} else {
+						sendMessage(e,String.format("Channel <#%s> is already being logged!",e.getChannel().getId()), false);
+					}
+				
+				}
 			}
 		}
 		else if(args.contains("remove")) {
@@ -462,18 +494,54 @@ public class Commands {
 					NeoBot.database.setLogList(cl.removeChannel(ch.getId()));
 				sendMessage(e,"No channels are being logged!", false);
 			} else {
-			
-				if (cl.isChannelLogged(e.getChannel().getId())) {
-					NeoBot.database.setLogList(cl.removeChannel(e.getChannel().getId()));
-					sendMessage(e,String.format("Channel <#%s> is no longer being logged!",e.getChannel().getId()), false);
-				} else {
-					sendMessage(e,String.format("Channel <#%s> wasn't being logged!",e.getChannel().getId()), false);
-				}
 				
+				if (channelArgs.size() > 0) {
+					StringBuilder sb = new StringBuilder();
+					for (String channel : channelArgs) {
+						if (cl.isChannelLogged(channel.substring(2,20))) {
+							NeoBot.database.setLogList(cl.removeChannel(channel.substring(2,20)));
+							sb.append(channel + System.lineSeparator());
+						}
+					}
+					int number = sb.toString().split(System.lineSeparator()).length;
+					boolean noNew = false;
+					if (number == 1)
+						noNew = sb.toString().split(System.lineSeparator())[0].isEmpty();
+					if(number == 0 || noNew)
+						sendMessage(e,"These channels weren't being logged!", false);
+					else if(number == 1)
+						sendMessage(e,String.format("Channel %s is no longer being logged!",sb.toString().split(System.lineSeparator())[0]), false);
+					else
+						sendMessage(e,String.format("The following channels will no longer be logged:%s%s",System.lineSeparator(), sb.toString()), false);
+				} else {
+			
+					if (cl.isChannelLogged(e.getChannel().getId())) {
+						NeoBot.database.setLogList(cl.removeChannel(e.getChannel().getId()));
+						sendMessage(e,String.format("Channel <#%s> is no longer being logged!",e.getChannel().getId()), false);
+					} else {
+						sendMessage(e,String.format("Channel <#%s> wasn't being logged!",e.getChannel().getId()), false);
+					}
+				
+				}
 			}
 		} else {
-			sendMessage(e,String.format("%s, please specify if you would like to `add` or `remove` this channel from the log list.",e.getAuthor().getAsMention()), false);
-			return;
+			if(!args.contains("list")) {
+				sendMessage(e,String.format("%s, please specify if you would like to `add` or `remove` this channel from the log list.",e.getAuthor().getAsMention()), false);
+				return;
+			}
+		}
+		
+		if(args.contains("list")) {
+			ArrayList<String> ch = NeoBot.database.getLogList().getLogList();
+			StringBuilder sb = new StringBuilder();
+			sb.append("Channels being logged:" + System.lineSeparator());
+			for (String id : ch)
+				try {
+				sb.append(NeoBot.jda.getTextChannelById(id).getAsMention() + System.lineSeparator());
+				} catch (Exception ex) {
+				}
+			if (ch.size() < 1) sb.append("No channels!");
+			sendMessage(e,sb.toString(),false);
 		}
 	}
 	
