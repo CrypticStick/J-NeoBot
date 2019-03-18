@@ -24,9 +24,7 @@ import net.dv8tion.jda.core.requests.RestAction;
 public class EventListener extends ListenerAdapter {
 
 	public void logMessage(Message message, boolean edited) {
-		if (message.getChannel().getName().equals("message-log") || 
-				message.getChannel().getName().equals("join-log") || 
-				message.getChannel().getName().equals("bot-test"))
+		if (message.getChannel().getName().equals("message-log"))
 			return; // Don't let it log a message from the log channel
 
 		if (message.getGuild().getTextChannelsByName("message-log", false).isEmpty()) {
@@ -105,14 +103,14 @@ public class EventListener extends ListenerAdapter {
 		if (e.getAuthor().isBot())
 			return;
 
-		if (e.getChannel().getName().equals("message-log") || 
-				e.getChannel().getName().equals("join-log")) {
+		if (e.getChannel().getName().equals("message-log")) {
 			try {
 				e.getMessage().delete();
 			} catch (Exception ex) {
 			}
 		} else {
-			logMessage(e.getMessage(), false);
+			if (NeoBot.database.getLogList().isChannelLogged(e.getChannel().getId()))
+				logMessage(e.getMessage(), false);
 		}
 	}
 
@@ -121,14 +119,14 @@ public class EventListener extends ListenerAdapter {
 		if (e.getAuthor().isBot())
 			return;
 
-		if (e.getChannel().getName().equals("message-log") || 
-				e.getChannel().getName().equals("join-log")) {
+		if (e.getChannel().getName().equals("message-log")) {
 			try {
 				e.getMessage().delete();
 			} catch (Exception ex) {
 			}
 		} else {
-			logMessage(e.getMessage(), true);
+			if (NeoBot.database.getLogList().isChannelLogged(e.getChannel().getId()))
+				logMessage(e.getMessage(), true);
 		}
 	}
 

@@ -13,6 +13,6 @@ public @interface Command {
 
     public String Syntax() default "";
 
-    public String SpecialPerms() default "";
+    public boolean SpecialPerms() default false;
 }
 

@@ -57,7 +57,20 @@ public class CommandHandler extends ListenerAdapter {
 				ArrayList<String> Aliases = new ArrayList<String>(
 						Arrays.asList(m.getAnnotation(Command.class).Aliases())); // gets the other aliases of the method
 				if (annotationName.equals(cmd) || Aliases.contains(cmd)) { // if the method has the command we are looking for...
-
+					
+					if (!NeoBot.RoleExists(NeoBot.database.getModRoleId()))	//if mod role doesn't exist
+						NeoBot.database.setModRoleId("");	//make sure role is set to nothing
+						
+					if (NeoBot.database.getModRoleId().equals("")) {	//if there is no mod role id saved, warn user
+						Commands.sendMessage(e,"Warning: I don't what who the mods are! Please type `setMod [mod role name]` ASAP!", false);
+					} else {	//otherwise, check if user has role
+						if (m.getAnnotation(Command.class).SpecialPerms() &&	// if the command requires special permissions...
+								!NeoBot.DiscordUserHasRole(e.getAuthor().getId(), NeoBot.database.getModRoleId())) {	//and the user isn't mod
+							Commands.sendMessage(e, String.format("%s, you do not have permission to run this command!",e.getAuthor().getAsMention()), false);
+							return;	//quit - they don't have permission
+						}
+					}
+							
 					Thread commandThread = new Thread() {
 						public void run() {
 							try {

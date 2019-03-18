@@ -13,10 +13,8 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 import javax.imageio.ImageIO;
@@ -29,6 +27,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 
 import com.Neobots2903.Discord.NeoBot.interfaces.Command;
+import com.Neobots2903.Discord.NeoBot.objects.DiscordChannelList;
 import com.Neobots2903.Discord.NeoBot.objects.DiscordUser;
 import com.Neobots2903.Discord.NeoBot.objects.JSONObject;
 import com.Neobots2903.Discord.NeoBot.objects.PendingMessage;
@@ -40,13 +39,15 @@ import com.sun.speech.freetts.VoiceManager;
 
 import net.dv8tion.jda.client.exceptions.VerificationLevelException;
 import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.MessageBuilder;
+import net.dv8tion.jda.core.entities.Channel;
 import net.dv8tion.jda.core.entities.ChannelType;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.entities.Message.Attachment;
 import net.dv8tion.jda.core.entities.MessageEmbed;
+import net.dv8tion.jda.core.entities.PrivateChannel;
+import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
 
@@ -111,10 +112,18 @@ public class Commands {
 	public static void sendMessage(Message m, String msg, boolean isPrivate) {
 		sendMessage(m.getAuthor(),m.getTextChannel(),msg,isPrivate);
 	}
+	
+	public static String getImageURL(MessageReceivedEvent e, File image) {
+		PrivateChannel pvt = NeoBot.jda.getSelfUser().openPrivateChannel().complete();
+		Message msg = pvt.sendFile(image).complete();
+		String url = msg.getAttachments().get(0).getUrl();
+		pvt.close();
+		return url;
+	}
 
 	@Command(Name = "help",
 			Summary = "Lists information about available commands",
-			Syntax = "help [optional:command]")
+			Syntax = "help {command}")
 	public static void IcanHELPyoU(MessageReceivedEvent e, ArrayList<String> args) {
 
 		String helpMsg = "";
@@ -139,8 +148,8 @@ public class Commands {
 					if (m.getAnnotation(Command.class).Aliases().length > 0)
 						formattedAliases = " (also " + String.join(", ", Aliases) + ")";
 					Summary = m.getAnnotation(Command.class).Summary();
-					if (!m.getAnnotation(Command.class).SpecialPerms().isEmpty())
-						SpecialPerms = " **<" + m.getAnnotation(Command.class).SpecialPerms() + ">**";
+					if (m.getAnnotation(Command.class).SpecialPerms())
+						SpecialPerms = " **<Mods Only>**";
 					if (!m.getAnnotation(Command.class).Syntax().isEmpty())
 						Syntax = " ~ `" + m.getAnnotation(Command.class).Syntax() + "`";
 					helpMsg += String.format("`%s%s%s` - %s%s%s\n",NeoBot.prefix,Name,formattedAliases,Summary,SpecialPerms,Syntax);
@@ -164,35 +173,35 @@ public class Commands {
 	}
 
 	@Command(Name = "test", 
-			Summary = "My personal testing command while implementing features. TESTING TESTING 123",
-			SpecialPerms = "Only Stickles can run this :P")
+			Summary = "My personal testing command while implementing features. TESTING TESTING 123")
 	public static void thisIsATEST123(MessageReceivedEvent e, ArrayList<String> args) {
 
 		if (!e.getAuthor().getId().equals("215507031375740928")) return;
         
 		JSONObject info = new JSONObject(HttpBlueAllianceGet(
 				String.format("http://www.thebluealliance.com/api/v3/team/frc%s/media/%s",args.get(0),LocalDate.now().getYear())));
-		StringBuilder list = new StringBuilder();
-		list.append(String.format("**Team %s's Avatar**%s", args.get(0),System.lineSeparator()));
+
 			String base64Image = info.get("0","details","base64Image")[0];
 			byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(base64Image);
 			try {
 				BufferedImage img = ImageIO.read(new ByteArrayInputStream(imageBytes));
-				File outputfile = new File("test.jpg");
-				ImageIO.write(img, "jpg", outputfile);
-				Message message = new MessageBuilder().append("My message").build();
-				//textChannel.sendFile(new File("my-file.txt"), message).queue();
+				File outputFile = new File("test.png");
+				ImageIO.write(img, "png", outputFile);
+				
+				EmbedBuilder eb = new EmbedBuilder();
+				eb.setDescription(String.format("**Team %s's Avatar**%s", args.get(0),System.lineSeparator()));
+				eb.setThumbnail(getImageURL(e,outputFile));
+				sendMessage(e,eb.build(),false);
+				
+				//Message message = new MessageBuilder().append(
+				//		String.format("**Team %s's Avatar**%s", args.get(0),System.lineSeparator())
+				//		).build();
+				
+				//e.getTextChannel().sendFile(outputFile, message).queue();
 			} catch (IOException e1) {
 			}
-			
-
-
-
-
-
-			sendMessage(e,list.toString(),false);
 		
-		sendMessage(e,"Test code complete!",false);
+		//sendMessage(e,"Test code complete!",false);
 		e.getMessage().delete().queue();
 	}
 	
@@ -258,6 +267,8 @@ public class Commands {
 			Summary = "Post a music file and the bot will play epic music",
 			Syntax = "music [audio file]")
 	public static void WowTHISSOUNDlikeMuSIC(MessageReceivedEvent e, ArrayList<String> args) {
+		if (!new File("music/").exists())
+			new File("music/").mkdir();
 		int suffix = 0;
 		String fileName = "";
 		if (args.isEmpty())
@@ -399,9 +410,76 @@ public class Commands {
 		sendMessage(e,e.getAuthor().getAsMention() + " Your ping request is pending. Please wait for a moderator to approve.", false);
 	}
 	
+	@Command(Name = "setmod", 
+			Summary = "Sets the role of moderators.",
+			SpecialPerms = true)
+	public static void takeMeToYourLeader(MessageReceivedEvent e, ArrayList<String> args) {
+		if (args.size() < 1) {
+			sendMessage(e,String.format("%s, please specify what the name of the moderator role is.", e.getAuthor().getAsMention()),false);
+			return;
+		}
+		String roleName = String.join(" ", args);
+		List<Role> roles = NeoBot.jda.getGuildById(NeoBot.guildID).getRolesByName(roleName, true);
+		if (roles.size() < 1) {
+			sendMessage(e,String.format("%s, role `%s` does not exist!", e.getAuthor().getAsMention(), roleName),false);
+			return;
+		}
+		else {
+			NeoBot.database.setModRoleId(roles.get(0).getId());
+			sendMessage(e,String.format("Thanks! Anybody with the role %s is now a Moderator.", roles.get(0).getAsMention()),false);
+		}
+	}
+	
+	@Command(Name = "logchannel", 
+			Summary = "Sets whether or not channel is logged",
+			Syntax = "logchannel [add] [remove] {all}",
+			SpecialPerms = true)
+	public static void ItsLOGGINTimE(MessageReceivedEvent e, ArrayList<String> args) {
+
+		DiscordChannelList cl = NeoBot.database.getLogList();
+		
+		if(args.contains("add")) {
+			
+			if(args.contains("all")) {
+				for(Channel ch : NeoBot.jda.getGuildById(NeoBot.guildID).getChannels()) 
+					NeoBot.database.setLogList(cl.addChannel(ch.getId()));
+				sendMessage(e,"All channels are being logged!", false);
+			} else {
+			
+				if (!cl.isChannelLogged(e.getChannel().getId())) {
+					NeoBot.database.setLogList(cl.addChannel(e.getChannel().getId()));
+					sendMessage(e,String.format("Channel <#%s> will now be logged!",e.getChannel().getId()), false);
+				} else {
+					sendMessage(e,String.format("Channel <#%s> is already being logged!",e.getChannel().getId()), false);
+				}
+				
+			}
+		}
+		else if(args.contains("remove")) {
+			
+			if(args.contains("all")) {
+				for(Channel ch : NeoBot.jda.getGuildById(NeoBot.guildID).getChannels()) 
+					NeoBot.database.setLogList(cl.removeChannel(ch.getId()));
+				sendMessage(e,"No channels are being logged!", false);
+			} else {
+			
+				if (cl.isChannelLogged(e.getChannel().getId())) {
+					NeoBot.database.setLogList(cl.removeChannel(e.getChannel().getId()));
+					sendMessage(e,String.format("Channel <#%s> is no longer being logged!",e.getChannel().getId()), false);
+				} else {
+					sendMessage(e,String.format("Channel <#%s> wasn't being logged!",e.getChannel().getId()), false);
+				}
+				
+			}
+		} else {
+			sendMessage(e,String.format("%s, please specify if you would like to `add` or `remove` this channel from the log list.",e.getAuthor().getAsMention()), false);
+			return;
+		}
+	}
+	
 	@Command(Name = "pending", 
 			Summary = "Checks pending user requests",
-			SpecialPerms = "Moderators only")
+			SpecialPerms = true)
 	public static void whoAthisisEPIC(MessageReceivedEvent e, ArrayList<String> args) {
 		
 		int index = 0;

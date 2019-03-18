@@ -1,28 +1,23 @@
 package com.Neobots2903.Discord.NeoBot;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.Console;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
 
 import javax.security.auth.login.LoginException;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
 import javax.swing.JFrame;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.transform.Result;
 
 import com.Neobots2903.Discord.NeoBot.GUI;
 import com.Neobots2903.Discord.NeoBot.objects.Database;
+import com.Neobots2903.Discord.NeoBot.objects.DiscordChannelList;
 import com.Neobots2903.Discord.NeoBot.objects.DiscordUser;
 import com.Neobots2903.Discord.NeoBot.objects.DiscordUserList;
 import com.Neobots2903.Discord.NeoBot.objects.TextAreaConsole;
@@ -40,6 +35,7 @@ import net.dv8tion.jda.core.JDABuilder;
 import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.entities.Game.GameType;
+import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
 
 public class NeoBot {
@@ -76,10 +72,10 @@ public class NeoBot {
         }
 	}
 	
-	public static Database getDatabase() {
-		try {    
-            File file = new File("database.xml");    
-            JAXBContext jaxbContext = JAXBContext.newInstance(DiscordUser.class);    
+	private static Database getDatabase() {
+		try {
+            File file = new File("database.xml");
+            JAXBContext jaxbContext = JAXBContext.newInstance(Database.class);    
             Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();    
             
             Database database =(Database)jaxbUnmarshaller.unmarshal(file);   
@@ -90,6 +86,8 @@ public class NeoBot {
         	  return new Database(
         			  NeoBot.guildID, 
         			  "Okay, now this is epic.", 
+        			  "",
+        			  new DiscordChannelList(new ArrayList<String>()),
         			  new DiscordUserList(new ArrayList<DiscordUser>())
         			  );
           }    
@@ -102,12 +100,35 @@ public class NeoBot {
 		} catch (Exception ex) { }
 	}  
 	
-	public static DiscordUser GetDiscordUser(String Id) {  
+	public static DiscordUser GetDiscordUser(String id) {  
 		try {
-	     return database.getUserList().getUser(Id);
+	     return database.getUserList().getUser(id);
 		} catch (Exception ex) { }
 		return null;
 	}  
+	
+	public static boolean DiscordUserHasRole(String userId, String roleId) {
+		List<Role> roles = jda.getGuildById(guildID).getMemberById(userId).getRoles();
+		boolean hasRole = false;
+		for (int i = 0; i < roles.size(); i++) {
+			if (roles.get(i).getId().equals(roleId))
+				hasRole = true;
+		}
+		return hasRole;
+	}
+	
+	public static boolean RoleExists(String roleId) {
+		Role role;
+		try {
+			role = jda.getGuildById(guildID).getRoleById(roleId);
+		} catch (Exception ex) {
+			return false;
+		}
+		if (role == null)
+			return false;
+		else
+			return true;
+	}
 	
 	public static void PlaySound(String path) {
 		Media file = new Media(new File(path).toURI().toString());
