@@ -21,6 +21,8 @@ import javax.imageio.ImageIO;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -28,6 +30,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 
 import com.Neobots2903.Discord.NeoBot.interfaces.Command;
 import com.Neobots2903.Discord.NeoBot.objects.DiscordChannelList;
+import com.Neobots2903.Discord.NeoBot.objects.DiscordEmojis;
 import com.Neobots2903.Discord.NeoBot.objects.DiscordUser;
 import com.Neobots2903.Discord.NeoBot.objects.JSONObject;
 import com.Neobots2903.Discord.NeoBot.objects.PendingMessage;
@@ -397,6 +400,18 @@ public class Commands {
 		Random rnd = new Random();
 		Integer randomInt = rnd.nextInt(100);
 		sendMessage(e,randomInt.toString(),false);
+	}
+	
+	@Command(Name = "clap", 
+			Summary = "Will clap for free")
+	public static void mEMErEVIEWclapCLAP(MessageReceivedEvent e, ArrayList<String> args) {
+
+		Random rnd = new Random();
+		int randomInt = 0;
+		while (randomInt == 0)
+			randomInt = rnd.nextInt(10);
+		sendMessage(e,StringUtils.repeat(DiscordEmojis.clap(),randomInt),false);
+		e.getMessage().delete().queue();
 	}
 	
 	@Command(Name = "everyone", 

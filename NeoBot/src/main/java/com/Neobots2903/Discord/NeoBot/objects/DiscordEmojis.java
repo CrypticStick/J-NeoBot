@@ -52,5 +52,9 @@ public class DiscordEmojis {
     public static String cross() {
         return "\u274e";
     }
+
+    public static String clap() {
+    	return "\uD83D\uDC4F";
+    }
 }
 
