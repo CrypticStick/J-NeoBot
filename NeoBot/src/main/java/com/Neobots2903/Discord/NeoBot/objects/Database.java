@@ -8,19 +8,23 @@ import com.Neobots2903.Discord.NeoBot.NeoBot;
 public class Database {
 
     private String serverId;
-    private String description;
+    private String name;
+    private String game;
     private String modRoleId;
     private DiscordChannelList logList;
     private DiscordUserList userList;
+    private FRCTeamList teamList;
 
     public Database(){ }
 
-    public Database(String serverId, String description, String modRoleId, DiscordChannelList logList, DiscordUserList userList) {
+    public Database(String serverId, String name, String game, String modRoleId, DiscordChannelList logList, DiscordUserList userList, FRCTeamList teamList) {
         this.serverId = serverId;
-        this.description = description;
+        this.name = name;
+        this.game = game;
         this.modRoleId = modRoleId;
         this.logList = logList;
         this.userList = userList;
+        this.teamList = teamList;
     }
 
     @XmlAttribute
@@ -35,12 +39,23 @@ public class Database {
     }
     
     @XmlElement
-    public String getDescription() {
-        return description;
+    public String getName() {
+        return name;
     }
 
-    public Database setDescription(String description) {
-        this.description = description;
+    public Database setName(String name) {
+        this.name = name;
+        NeoBot.setDatabase(this);
+        return this;
+    }
+    
+    @XmlElement
+    public String getGame() {
+        return game;
+    }
+
+    public Database setGame(String game) {
+        this.game = game;
         NeoBot.setDatabase(this);
         return this;
     }
@@ -74,6 +89,17 @@ public class Database {
 
     public Database setUserList(DiscordUserList userList) {
         this.userList = userList;
+        NeoBot.setDatabase(this);
+        return this;
+    }
+    
+    @XmlElement
+    public FRCTeamList getTeamList() {
+        return teamList;
+    }
+
+    public Database setTeamList(FRCTeamList teamList) {
+        this.teamList = teamList;
         NeoBot.setDatabase(this);
         return this;
     }

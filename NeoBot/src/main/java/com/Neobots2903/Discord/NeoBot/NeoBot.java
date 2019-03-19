@@ -20,6 +20,8 @@ import com.Neobots2903.Discord.NeoBot.objects.Database;
 import com.Neobots2903.Discord.NeoBot.objects.DiscordChannelList;
 import com.Neobots2903.Discord.NeoBot.objects.DiscordUser;
 import com.Neobots2903.Discord.NeoBot.objects.DiscordUserList;
+import com.Neobots2903.Discord.NeoBot.objects.FRCTeamList;
+import com.Neobots2903.Discord.NeoBot.objects.FRCTeam;
 import com.Neobots2903.Discord.NeoBot.objects.TextAreaConsole;
 
 import java.io.InputStream;
@@ -50,6 +52,7 @@ public class NeoBot {
 	static String prefix;
 	static String mention;
 	static String botMessage;
+	static String botName;
 	static boolean running = true;
 	static int timeoutSeconds = 10;
 	static MediaPlayer mediaPlayer;
@@ -85,10 +88,12 @@ public class NeoBot {
         	  ex.printStackTrace();
         	  return new Database(
         			  NeoBot.guildID, 
-        			  "Okay, now this is epic.", 
+        			  "NeoBot", 
+        			  "NEOBOT IS HERE!",
         			  "",
         			  new DiscordChannelList(new ArrayList<String>()),
-        			  new DiscordUserList(new ArrayList<DiscordUser>())
+        			  new DiscordUserList(new ArrayList<DiscordUser>()),
+        			  new FRCTeamList(new ArrayList<FRCTeam>())
         			  );
           }    
 	}
@@ -160,7 +165,8 @@ public class NeoBot {
 		}
 		
 		prefix = ".";
-		botMessage = "NEOBOT IS HERE!!";
+		botMessage = database.getGame();
+		botName = database.getName();
 		
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(tokenIS));
@@ -198,6 +204,11 @@ public class NeoBot {
 				throw new InterruptedException("Connection timeout.");
 			}
 		}
+		
+		jda.getGuildById(guildID).getController().setNickname(
+				jda.getGuildById(guildID).getMember(jda.getSelfUser()),
+				database.getName()
+				).queue();
 		
 		mention = String.format("<@%s>", jda.getSelfUser().getId());
 

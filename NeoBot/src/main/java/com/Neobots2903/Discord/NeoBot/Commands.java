@@ -32,6 +32,7 @@ import com.Neobots2903.Discord.NeoBot.interfaces.Command;
 import com.Neobots2903.Discord.NeoBot.objects.DiscordChannelList;
 import com.Neobots2903.Discord.NeoBot.objects.DiscordEmojis;
 import com.Neobots2903.Discord.NeoBot.objects.DiscordUser;
+import com.Neobots2903.Discord.NeoBot.objects.FRCTeam;
 import com.Neobots2903.Discord.NeoBot.objects.JSONObject;
 import com.Neobots2903.Discord.NeoBot.objects.PendingMessage;
 import com.github.axet.vget.VGet;
@@ -44,9 +45,11 @@ import net.dv8tion.jda.client.exceptions.VerificationLevelException;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.entities.Channel;
 import net.dv8tion.jda.core.entities.ChannelType;
+import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.core.entities.Game.GameType;
 import net.dv8tion.jda.core.entities.Message.Attachment;
 import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.entities.PrivateChannel;
@@ -181,30 +184,31 @@ public class Commands {
 
 		if (!e.getAuthor().getId().equals("215507031375740928")) return;
         
-		JSONObject info = new JSONObject(HttpBlueAllianceGet(
-				String.format("http://www.thebluealliance.com/api/v3/team/frc%s/media/%s",args.get(0),LocalDate.now().getYear())));
-
-			String base64Image = info.get("0","details","base64Image")[0];
-			byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(base64Image);
-			try {
-				BufferedImage img = ImageIO.read(new ByteArrayInputStream(imageBytes));
-				File outputFile = new File("test.png");
-				ImageIO.write(img, "png", outputFile);
-				
-				EmbedBuilder eb = new EmbedBuilder();
-				eb.setDescription(String.format("**Team %s's Avatar**%s", args.get(0),System.lineSeparator()));
-				eb.setThumbnail(getImageURL(e,outputFile));
-				sendMessage(e,eb.build(),false);
-				
-				//Message message = new MessageBuilder().append(
-				//		String.format("**Team %s's Avatar**%s", args.get(0),System.lineSeparator())
-				//		).build();
-				
-				//e.getTextChannel().sendFile(outputFile, message).queue();
-			} catch (IOException e1) {
-			}
+//		JSONObject info = new JSONObject(HttpBlueAllianceGet(
+//				String.format("http://www.thebluealliance.com/api/v3/team/frc%s/media/%s",args.get(0),LocalDate.now().getYear())));
+//
+//			String base64Image = info.get("0","details","base64Image")[0];
+//			byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(base64Image);
+//			try {
+//				BufferedImage img = ImageIO.read(new ByteArrayInputStream(imageBytes));
+//				File outputFile = new File("test.png");
+//				ImageIO.write(img, "png", outputFile);
+//				
+//				EmbedBuilder eb = new EmbedBuilder();
+//				eb.setDescription(String.format("**Team %s's Avatar**%s", args.get(0),System.lineSeparator()));
+//				eb.setThumbnail(getImageURL(e,outputFile));
+//				sendMessage(e,eb.build(),false);
+//				
+//				//Message message = new MessageBuilder().append(
+//				//		String.format("**Team %s's Avatar**%s", args.get(0),System.lineSeparator())
+//				//		).build();
+//				
+//				//e.getTextChannel().sendFile(outputFile, message).queue();
+//			} catch (IOException e1) {
+//			}
 		
-		//sendMessage(e,"Test code complete!",false);
+		NeoBot.jda.getSelfUser().getManager().setName("NeoBot").queue();
+		sendMessage(e,"Test code complete!",false);
 		e.getMessage().delete().queue();
 	}
 	
@@ -370,6 +374,11 @@ public class Commands {
 					return;
 				}
 				
+				if (NeoBot.database.getTeamList().getTeam(teamNumber) == null)
+					NeoBot.database.setTeamList(NeoBot.database.getTeamList().setTeam(
+							new FRCTeam(teamNumber, info.get("nickname")[0], new ArrayList<String>())
+							));
+				
 				EmbedBuilder eb = new EmbedBuilder();
 				eb.setColor(Color.red);
 				eb.setDescription(String.format("**Team %s's Info**", teamNumber));
@@ -390,6 +399,45 @@ public class Commands {
 			default :
 				sendMessage(e,String.format("Sorry, I have no information on '%s'",args.get(switchArg)),false);
 				break;
+		}
+	}
+	
+	@Command(Name = "neobot", 
+			Summary = "Edits properties of NeoBot",
+			Syntax = "neobot [name] [game] {new text}",
+			SpecialPerms = true)
+	public static void itsTIMEtoEDITneoBOT(MessageReceivedEvent e, ArrayList<String> args) {
+		
+		if (args.isEmpty()) {
+			sendMessage(e,String.format("%s, please type `name` or `game`, along with the new text.", e.getAuthor().getAsMention()),false);
+			return;
+		}
+		
+		if (args.get(0).equals("name")) {
+			args.remove(args.get(0));
+			if (args.size() < 1) {
+				sendMessage(e,String.format("%s, please enter what you would like the new text to be.", e.getAuthor().getAsMention()),false);
+				return;
+			}
+			NeoBot.database.setName(String.join(" ", args));
+			NeoBot.jda.getGuildById(NeoBot.guildID).getController().setNickname(
+					NeoBot.jda.getGuildById(NeoBot.guildID).getMember(NeoBot.jda.getSelfUser()),
+					NeoBot.database.getName()
+					).queue();
+			sendMessage(e,String.format("NeoBot will now be called \"%s\"!", NeoBot.database.getName()),false);
+			return;
+		} else if (args.get(0).equals("game")) {
+			args.remove(args.get(0));
+			if (args.size() < 1) {
+				sendMessage(e,String.format("%s, please enter what you would like the new text to be.", e.getAuthor().getAsMention()),false);
+				return;
+			}
+				NeoBot.database.setGame(String.join(" ", args));
+				NeoBot.jda.getPresence().setGame(
+						Game.of(GameType.DEFAULT, String.format("%s (Type %shelp)", NeoBot.database.getGame(), NeoBot.prefix))
+						);
+			sendMessage(e,String.format("NeoBot is now playing \"%s\"!", NeoBot.database.getGame()),false);
+			return;
 		}
 	}
 	
