@@ -28,7 +28,6 @@ import java.io.InputStream;
 
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
-import com.sun.javafx.application.PlatformImpl;
 
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDA;
@@ -144,7 +143,7 @@ public class NeoBot {
 
 	public static void main(String[] args) throws LoginException, RateLimitedException, InterruptedException {
 
-		PlatformImpl.startup(()->{});
+		//PlatformImpl.startup(()->{});
 		GUI window = null;
 		boolean guiAvailable = true;
 		try {
